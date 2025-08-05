@@ -1,0 +1,6 @@
+{
+  "name": "Gerenciador de Molduraria",
+  "description": "Um sistema completo para gerenciar pedidos personalizados, clientes e estoque de materiais para uma loja de molduras. Calcule o uso de material, controle o estoque e gere descrições de pedidos com IA.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
