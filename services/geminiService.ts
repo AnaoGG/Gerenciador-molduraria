@@ -1,6 +1,6 @@
 // services/geminiService.ts
 
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai"; // Importação corrigida
 import type { Material } from '../types';
 
 export const generateDescription = async (
@@ -9,9 +9,6 @@ export const generateDescription = async (
     selectedMaterials: { material: Material; quantity: number }[]
 ): Promise<string> => {
     
-    // NOTA: A Vercel não usa process.env diretamente no frontend.
-    // A configuração no vite.config.ts com 'process.env.GEMINI_API_KEY'
-    // torna a chave disponível. Vamos usar isso.
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
@@ -19,7 +16,9 @@ export const generateDescription = async (
         return `Peça personalizada de ${width}x${height} cm. Uma bela adição para qualquer ambiente.`;
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    // A classe principal mudou de nome na biblioteca
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
 
     const materialDetails = selectedMaterials
         .map(({ material }) => `- ${material.category}: ${material.name}`)
@@ -41,23 +40,14 @@ export const generateDescription = async (
     `;
 
     try {
-        const result = await ai.models.generateContent({
-            // Nota: o nome do modelo pode ter sido atualizado, verifique a documentação se houver erro.
-            model: "gemini-1.5-flash", // Usando um modelo padrão mais recente.
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-        });
+        const result = await model.generateContent(prompt);
 
-        const response = result.response;
-
-        // <-- ESTA É A CORREÇÃO PARA O ERRO DO TYPESCRIPT -->
-        // Verificamos se a resposta e a propriedade text existem antes de usar.
-        if (response && typeof response.text === 'function') {
-            const text = response.text();
-            return text.trim();
-        } else {
-            console.error("A resposta da API Gemini não continha o formato esperado (response.text is not a function).");
-            return "Não foi possível gerar a descrição. Por favor, escreva manualmente.";
-        }
+        // --- ESTA É A CORREÇÃO PRINCIPAL ---
+        // A resposta de sucesso está diretamente em result.response
+        const response = result.response; 
+        const text = response.text();
+        
+        return text.trim();
 
     } catch (error) {
         console.error("Error calling Gemini API:", error);
