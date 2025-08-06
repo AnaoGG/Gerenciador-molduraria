@@ -360,7 +360,6 @@ export const AppContextProvider: React.FC<{ children: ReactNode }> = ({ children
   };
 
   // ---------- AUTH ----------
-  const [users, setUsers] = useLocalStorage<User[]>('auth_users', []);
   const [currentUser, setCurrentUser] = useLocalStorage<User | null>('auth_currentUser', null);
   const isAuthenticated = !!currentUser;
 

@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import Modal from '../ui/Modal';
-import type { Order, OrderItem, Client, Material, View, PaymentInstallment } from '../../types';
+import type { Order, OrderItem, Material, View, PaymentInstallment } from '../../types';
 import { OrderStatus, MaterialCategory, UnitOfMeasure, PaymentMethod, PaymentStatus } from '../../types';
 import { generateDescription } from '../../services/geminiService';
 import { SparklesIcon } from '../../constants';

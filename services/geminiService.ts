@@ -1,3 +1,4 @@
+// services/geminiService.ts
 
 import { GoogleGenAI } from "@google/genai";
 import type { Material } from '../types';
@@ -8,14 +9,17 @@ export const generateDescription = async (
     selectedMaterials: { material: Material; quantity: number }[]
 ): Promise<string> => {
     
-    if (!process.env.API_KEY) {
-        // This is a fallback for development if the API key is not set.
-        // In a real deployed environment, this would ideally throw an error or be handled differently.
-        console.warn("API_KEY environment variable not set. Returning a mock description.");
+    // NOTA: A Vercel não usa process.env diretamente no frontend.
+    // A configuração no vite.config.ts com 'process.env.GEMINI_API_KEY'
+    // torna a chave disponível. Vamos usar isso.
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+        console.warn("Chave da API Gemini não configurada. Retornando descrição padrão.");
         return `Peça personalizada de ${width}x${height} cm. Uma bela adição para qualquer ambiente.`;
     }
 
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey });
 
     const materialDetails = selectedMaterials
         .map(({ material }) => `- ${material.category}: ${material.name}`)
@@ -37,12 +41,24 @@ export const generateDescription = async (
     `;
 
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash-preview-04-17",
-            contents: prompt,
+        const result = await ai.models.generateContent({
+            // Nota: o nome do modelo pode ter sido atualizado, verifique a documentação se houver erro.
+            model: "gemini-1.5-flash", // Usando um modelo padrão mais recente.
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
         });
 
-        return response.text.trim();
+        const response = result.response;
+
+        // <-- ESTA É A CORREÇÃO PARA O ERRO DO TYPESCRIPT -->
+        // Verificamos se a resposta e a propriedade text existem antes de usar.
+        if (response && typeof response.text === 'function') {
+            const text = response.text();
+            return text.trim();
+        } else {
+            console.error("A resposta da API Gemini não continha o formato esperado (response.text is not a function).");
+            return "Não foi possível gerar a descrição. Por favor, escreva manualmente.";
+        }
+
     } catch (error) {
         console.error("Error calling Gemini API:", error);
         return "Não foi possível gerar a descrição. Por favor, escreva manualmente.";

@@ -21,6 +21,7 @@ export interface Material {
   category: MaterialCategory;
   unit: UnitOfMeasure;
   stock: number;
+  description?: string;
 }
 
 export interface Client {
